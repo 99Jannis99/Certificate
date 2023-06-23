@@ -1,6 +1,7 @@
 $(document).ready(function () {
   var clickTimes = [];
-  var elementId = "#leistungen-dot";
+  var elementId = "#ID"; // Setzen Sie hier die ID Ihres Elements ein
+  var longPressTimer;
   var resetTimer;
 
   // Modal hinzufügen
@@ -14,25 +15,43 @@ $(document).ready(function () {
       // Timer zum Zurücksetzen starten, wenn der erste Klick erkannt wird
       resetTimer = setTimeout(function () {
         clickTimes = [];
-      }, 1500);
+      }, 2000);
     }
 
     clickTimes.push(new Date().getTime());
 
-    // Check for four clicks
+    // Long press check
     if (clickTimes.length === 4) {
-      var durations = [];
-      for (var i = 1; i < clickTimes.length; i++) {
-        durations.push(clickTimes[i] - clickTimes[i - 1]);
-      }
+      longPressTimer = setTimeout(function () {
+        var durations = [];
+        for (var i = 1; i < clickTimes.length; i++) {
+          durations.push(clickTimes[i] - clickTimes[i - 1]);
+        }
 
-      // Prüfen, ob die ersten drei Klicks kurz waren
-      if (durations[0] < 500 && durations[1] < 500 && durations[2] < 500) {
-        $("#custom-modal").show().css("background-color", "rgba(0,0,0,0.5)");
-        $("#custom-modal-content").css("left", "50%");
-      }
+        // Prüfen, ob die ersten drei Klicks kurz waren und der vierte lang
+        if (
+          durations[0] < 500 &&
+          durations[1] < 500 &&
+          new Date().getTime() - clickTimes[3] > 1000
+        ) {
+          $("#custom-modal").show().css("background-color", "rgba(0,0,0,0.5)");
+          $("#custom-modal-content").css("left", "50%");
+        }
 
-      clickTimes = []; // Array zurücksetzen
+        clickTimes = []; // Array zurücksetzen
+        clearTimeout(resetTimer); // Reset-Timer stoppen
+      }, 1000);
+    }
+  });
+
+  // Wenn die Maustaste oder der Touch losgelassen wird
+  $(elementId).on("mouseup touchend", function () {
+    if (
+      clickTimes.length === 4 &&
+      new Date().getTime() - clickTimes[3] < 1000
+    ) {
+      clearTimeout(longPressTimer);
+      clickTimes = []; // Array zurücksetzen, wenn der vierte Klick kurz war
       clearTimeout(resetTimer); // Reset-Timer stoppen
     }
   });
